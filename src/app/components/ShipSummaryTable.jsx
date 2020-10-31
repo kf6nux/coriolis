@@ -65,15 +65,13 @@ export default class ShipSummaryTable extends TranslatedComponent {
       muted: !shieldGenerator,
     });
     const sgTooltip = shieldGenerator ? 'TT_SUMMARY_SHIELDS' : 'TT_SUMMARY_SHIELDS_NONFUNCTIONAL';
-    let shieldColour;
-    switch (shieldGenerator.readMeta('type')) {
+    const sgType = shieldGenerator ? shieldGenerator.readMeta('type') : undefined;
+    let shieldColour = 'blue';
+    switch (sgType) {
       case 'biweaveshieldgen': shieldColour = 'purple'; break;
       case 'prismaticshieldgen': shieldColour = 'green'; break;
-      default: shieldColour = 'blue';
     }
-    this.state = {
-      shieldColour
-    };
+    this.state = { shieldColour };
 
     const jumpRangeMetrics = ship.getMetrics(JUMP_METRICS);
     // TODO:
@@ -227,7 +225,7 @@ export default class ShipSummaryTable extends TranslatedComponent {
             </thead>
             <tbody>
               <tr>
-                <td>{translate(shieldGenerator.readMeta('type') || 'No Shield')}</td>
+                <td>{translate(sgType || 'No Shield')}</td>
                 <td>{formats.pct1(1 - sgMetrics.explosive.damageMultiplier)}</td>
                 <td>{formats.pct1(1 - sgMetrics.kinetic.damageMultiplier)}</td>
                 <td>{formats.pct1(1 - sgMetrics.thermal.damageMultiplier)}</td>
