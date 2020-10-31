@@ -7,7 +7,7 @@ import { Warning } from './SvgIcons';
 
 import { ShipProps } from 'ed-forge';
 const {
-  MAX_SPEED, BOOST_SPEED, DAMAGE_METRICS, JUMP_METRICS, SHIELD_METRICS,
+  SPEED, BOOST_SPEED, DAMAGE_METRICS, JUMP_METRICS, SHIELD_METRICS,
   ARMOUR_METRICS, CARGO_CAPACITY, FUEL_CAPACITY, UNLADEN_MASS, MAXIMUM_MASS,
   MODULE_PROTECTION_METRICS
 } = ShipProps;
@@ -46,7 +46,7 @@ export default class ShipSummaryTable extends TranslatedComponent {
     let { time, int, round, f1, f2 } = formats;
     let hide = tooltip.bind(null, null);
 
-    const speed = ship.get(MAX_SPEED);
+    const speed = ship.get(SPEED);
     const shipBoost = ship.get(BOOST_SPEED);
     const canThrust = 0 < speed;
     const canBoost = canThrust && !isNaN(shipBoost);
