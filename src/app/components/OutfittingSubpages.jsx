@@ -11,30 +11,24 @@ import Movement from './Movement';
 import Offence from './Offence';
 import Defence from './Defence';
 import WeaponDamageChart from './WeaponDamageChart';
+import Pips from '../components/Pips';
+import Boost from '../components/Boost';
+import Fuel from '../components/Fuel';
+import Cargo from '../components/Cargo';
+import ShipPicker from '../components/ShipPicker';
+import EngagementRange from '../components/EngagementRange';
 import autoBind from 'auto-bind';
+import { ShipProps } from 'ed-forge';
+const { CARGO_CAPACITY, FUEL_CAPACITY } = ShipProps;
 
 /**
  * Outfitting subpages
  */
 export default class OutfittingSubpages extends TranslatedComponent {
-
   static propTypes = {
     ship: PropTypes.object.isRequired,
     code: PropTypes.string.isRequired,
-    onChange: PropTypes.func.isRequired,
     buildName: PropTypes.string,
-    sys: PropTypes.number.isRequired,
-    eng: PropTypes.number.isRequired,
-    wep: PropTypes.number.isRequired,
-    cargo: PropTypes.number.isRequired,
-    fuel: PropTypes.number.isRequired,
-    boost: PropTypes.bool.isRequired,
-    engagementRange: PropTypes.number.isRequired,
-    opponent: PropTypes.object.isRequired,
-    opponentBuild: PropTypes.string,
-    opponentSys: PropTypes.number.isRequired,
-    opponentEng: PropTypes.number.isRequired,
-    opponentWep: PropTypes.number.isRequired,
   };
 
   /**
@@ -45,8 +39,15 @@ export default class OutfittingSubpages extends TranslatedComponent {
     super(props);
     autoBind(this);
 
+    this.props.ship.setOpponent(this.props.ship);
     this.state = {
+      boost: false,
+      cargo: props.ship.get(CARGO_CAPACITY),
+      fuel: props.ship.get(FUEL_CAPACITY),
+      pips: props.ship.getDistributorSettingsObject(),
       tab: Persist.getOutfittingTab() || 'power',
+      engagementRange: 1000,
+      opponent: this.props.ship,
     };
   }
 
@@ -55,97 +56,8 @@ export default class OutfittingSubpages extends TranslatedComponent {
    * @param  {string} tab Tab name
    */
   _showTab(tab) {
+    Persist.setOutfittingTab(tab);
     this.setState({ tab });
-  }
-
-  /**
-   * Render the power tab
-   * @return {React.Component} Tab contents
-   */
-  _powerTab() {
-    let { ship, buildName, code, onChange } = this.props;
-    Persist.setOutfittingTab('power');
-
-    const powerMarker = `${ship.toString()}`;
-    const costMarker = `${ship.toString().split('.')[0]}`;
-
-    return <div>
-      <PowerManagement ship={ship} code={powerMarker} onChange={onChange} />
-      <CostSection ship={ship} buildName={buildName} code={costMarker} />
-    </div>;
-  }
-
-  /**
-   * Render the profiles tab
-   * @return {React.Component} Tab contents
-   */
-  _profilesTab() {
-    const { ship, opponent, cargo, fuel, eng, boost, engagementRange, opponentSys } = this.props;
-    const { translate } = this.context.language;
-    let realBoost = boost && ship.canBoost(cargo, fuel);
-    Persist.setOutfittingTab('profiles');
-
-    const engineProfileMarker = `${ship.toString()}:${cargo}:${fuel}:${eng}:${realBoost}`;
-    const fsdProfileMarker = `${ship.toString()}:${cargo}:${fuel}`;
-    const movementMarker = `${ship.topSpeed}:${ship.pitch}:${ship.roll}:${ship.yaw}:${ship.canBoost(cargo, fuel)}`;
-    const damageMarker = `${ship.toString()}:${opponent.toString()}:${engagementRange}:${opponentSys}`;
-
-    return <div>
-      <div className='group third'>
-        <h1>{translate('engine profile')}</h1>
-        <EngineProfile ship={ship} marker={engineProfileMarker} fuel={fuel} cargo={cargo} eng={eng} boost={realBoost} />
-      </div>
-
-      <div className='group third'>
-        <h1>{translate('fsd profile')}</h1>
-        <FSDProfile ship={ship} marker={fsdProfileMarker} fuel={fuel} cargo={cargo} />
-      </div>
-
-      <div className='group third'>
-        <h1>{translate('movement profile')}</h1>
-        <Movement marker={movementMarker} ship={ship} boost={boost} eng={eng} cargo={cargo} fuel={fuel} />
-      </div>
-
-      <div className='group half'>
-        <h1>{translate('damage to opponent\'s shields')}</h1>
-        <WeaponDamageChart marker={damageMarker} ship={ship} opponent={opponent} opponentSys={opponentSys} hull={false} engagementRange={engagementRange} />
-      </div>
-
-      <div className='group half'>
-        <h1>{translate('damage to opponent\'s hull')}</h1>
-        <WeaponDamageChart marker={damageMarker} ship={ship} opponent={opponent} opponentSys={opponentSys} hull={true} engagementRange={engagementRange} />
-      </div>
-    </div>;
-  }
-
-  /**
-   * Render the offence tab
-   * @return {React.Component} Tab contents
-   */
-  _offenceTab() {
-    const { ship, sys, eng, wep, cargo, fuel, boost, engagementRange, opponent, opponentBuild, opponentSys } = this.props;
-    Persist.setOutfittingTab('offence');
-
-    const marker = `${ship.toString()}${opponent.toString()}${opponentBuild}${engagementRange}${opponentSys}`;
-
-    return <div>
-      <Offence marker={marker} ship={ship} opponent={opponent} wep={wep} opponentSys={opponentSys} engagementrange={engagementRange}/>
-    </div>;
-  }
-
-  /**
-   * Render the defence tab
-   * @return {React.Component} Tab contents
-   */
-  _defenceTab() {
-    const { ship, sys, eng, wep, cargo, fuel, boost, engagementRange, opponent, opponentBuild, opponentWep } = this.props;
-    Persist.setOutfittingTab('defence');
-
-    const marker = `${ship.toString()}${opponent.toString()}{opponentBuild}${engagementRange}${opponentWep}`;
-
-    return <div>
-      <Defence marker={marker} ship={ship} opponent={opponent} sys={sys} opponentWep={opponentWep} engagementrange={engagementRange}/>
-    </div>;
   }
 
   /**
@@ -153,30 +65,105 @@ export default class OutfittingSubpages extends TranslatedComponent {
    * @return {React.Component} Contents
    */
   render() {
-    const tab = this.state.tab;
-    const translate = this.context.language.translate;
-    let tabSection;
+    const { buildName, code, ship } = this.props;
+    const { boost, cargo, fuel, pips, tab, engagementRange, opponent } = this.state;
+    const { translate } = this.context.language;
 
-    switch (tab) {
-      case 'power': tabSection = this._powerTab(); break;
-      case 'profiles': tabSection = this._profilesTab(); break;
-      case 'offence': tabSection = this._offenceTab(); break;
-      case 'defence': tabSection = this._defenceTab(); break;
-    }
-
+    const cargoCapacity = ship.get(CARGO_CAPACITY);
+    const showCargoSlider = cargoCapacity > 0;
     return (
-      <div className='group full' style={{ minHeight: '1000px' }}>
-        <table className='tabs'>
-          <thead>
-            <tr>
-              <th style={{ width:'25%' }} className={cn({ active: tab == 'power' })} onClick={this._showTab.bind(this, 'power')} >{translate('power and costs')}</th>
-              <th style={{ width:'25%' }} className={cn({ active: tab == 'profiles' })} onClick={this._showTab.bind(this, 'profiles')} >{translate('profiles')}</th>
-              <th style={{ width:'25%' }} className={cn({ active: tab == 'offence' })} onClick={this._showTab.bind(this, 'offence')} >{translate('offence')}</th>
-              <th style={{ width:'25%' }} className={cn({ active: tab == 'defence' })} onClick={this._showTab.bind(this, 'defence')} >{translate('tab_defence')}</th>
-            </tr>
-          </thead>
-        </table>
-        {tabSection}
+      <div>
+        {/* Control of ship and opponent */}
+        <div className="group quarter">
+          <h2 style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+            {translate('ship control')}
+          </h2>
+          <Boost boost={boost} onChange={(boost) => this.setState({ boost })} />
+        </div>
+        <div className="group quarter">
+          <h2 style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+            {translate('opponent')}
+          </h2>
+          <ShipPicker ship={ship} onChange={(opponent) => this.setState({ opponent })} />
+        </div>
+        <div className={cn('group', { quarter: showCargoSlider, half: !showCargoSlider })}>
+          <Fuel fuelCapacity={ship.get(FUEL_CAPACITY)} fuel={fuel}
+            onChange={(fuel) => this.setState({ fuel })} />
+        </div>
+        {showCargoSlider ?
+          <div className="group quarter">
+            <Cargo cargoCapacity={cargoCapacity} cargo={cargo}
+              onChange={(cargo) => this.setState({ cargo })} />
+          </div> : null}
+        <div className="group half">
+          <Pips ship={ship} pips={pips} onChange={(pips) => this.setState({ pips })} />
+        </div>
+        <div className="group half">
+          <EngagementRange ship={ship} engagementRange={engagementRange}
+            onChange={(engagementRange) => this.setState({ engagementRange })} />
+        </div>
+        <div className='group full' style={{ minHeight: '1000px' }}>
+          <table className='tabs'>
+            {/* Select tab section */}
+            <thead>
+              <tr>
+                <th style={{ width:'25%' }} className={cn({ active: tab == 'power' })}
+                  onClick={this._showTab.bind(this, 'power')}>
+                  {translate('power and costs')}
+                </th>
+                <th style={{ width:'25%' }} className={cn({ active: tab == 'profiles' })}
+                  onClick={this._showTab.bind(this, 'profiles')}>
+                  {translate('profiles')}</th>
+                <th style={{ width:'25%' }} className={cn({ active: tab == 'offence' })}
+                  onClick={this._showTab.bind(this, 'offence')}>
+                  {translate('offence')}
+                </th>
+                <th style={{ width:'25%' }} className={cn({ active: tab == 'defence' })}
+                  onClick={this._showTab.bind(this, 'defence')}>
+                  {translate('tab_defence')}
+                </th>
+              </tr>
+            </thead>
+          </table>
+          {/* Show selected tab */}
+          {tab == 'power' ?
+            <div>
+              <PowerManagement ship={ship} code={code} />
+              <CostSection ship={ship} buildName={buildName} code={code} />
+            </div> : null}
+          {tab == 'profiles' ?
+            <div>
+              <div className='group third'>
+                <h1>{translate('engine profile')}</h1>
+                <EngineProfile code={code} ship={ship} fuel={fuel} cargo={cargo} pips={pips} boost={boost} />
+              </div>
+              <div className='group third'>
+                <h1>{translate('fsd profile')}</h1>
+                <FSDProfile code={code} ship={ship} fuel={fuel} cargo={cargo} />
+              </div>
+              <div className='group third'>
+                <h1>{translate('movement profile')}</h1>
+                <Movement code={code} ship={ship} boost={boost} pips={pips} />
+              </div>
+              <div className='group third'>
+                <h1>{translate('damage to opponent\'s shields')}</h1>
+                <WeaponDamageChart code={code} ship={ship} opponentDefence={opponent.getShield()} engagementRange={engagementRange} />
+              </div>
+
+              <div className='group third'>
+                <h1>{translate('damage to opponent\'s hull')}</h1>
+                <WeaponDamageChart code={code} ship={ship} opponentDefence={opponent.getArmour()} engagementRange={engagementRange} />
+              </div>
+            </div> : null}
+          {tab == 'offence' ?
+            <div>
+              <Offence code={code} ship={ship} opponent={opponent} engagementRange={engagementRange} />
+            </div> : null}
+          {tab == 'defence' ?
+            <div>
+              <Defence code={code} ship={ship} opponent={opponent} engagementRange={engagementRange} />
+            </div> : null}
+        </div>
       </div>
     );
   }
