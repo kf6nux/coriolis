@@ -5,10 +5,10 @@ import Persist from '../stores/Persist';
 import Ship from '../shipyard/Ship';
 import { Insurance } from '../shipyard/Constants';
 import TranslatedComponent from './TranslatedComponent';
-import { ShoppingIcon } from '../components/SvgIcons';
+import { ShoppingIcon } from './SvgIcons';
 import autoBind from 'auto-bind';
 import { assign, differenceBy, sortBy, reverse } from 'lodash';
-import { COST, FUEL_CAPACITY } from 'ed-forge/lib/ship-stats';
+import { FUEL_CAPACITY } from 'ed-forge/lib/ship-stats';
 
 /**
  * Cost Section
@@ -154,12 +154,18 @@ export default class CostSection extends TranslatedComponent {
     if (desc) {
       reverse(modules);
     }
+
+    let totalCost = 0;
     for (let module of modules) {
       const cost = module.readMeta('cost');
       const slot = module.getSlot();
       if (cost) {
         let toggle = this._toggleExcluded.bind(this, slot);
-        rows.push(<tr key={slot} className={cn('highlight', { disabled: excluded[slot] })}>
+        const disabled = excluded[slot];
+        if (!disabled) {
+          totalCost += cost;
+        }
+        rows.push(<tr key={slot} className={cn('highlight', { disabled })}>
           <td className='ptr' style={{ width: '1em' }} onClick={toggle}>{module.getClassRating()}</td>
           <td className='le ptr shorten cap' onClick={toggle}>{translate(module.readMeta('type'))}</td>
           <td className='ri ptr' onClick={toggle}>{formats.int(cost * (1 - moduleDiscount))}{units.CR}</td>
@@ -167,7 +173,6 @@ export default class CostSection extends TranslatedComponent {
       }
     }
 
-    const totalCost = ship.get(COST);
     return <div>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
