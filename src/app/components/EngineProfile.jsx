@@ -53,7 +53,7 @@ export default class EngineProfile extends TranslatedComponent {
         func={cb.bind(this, pips.Eng.base + pips.Eng.mc, boost)}
         points={1000}
         // Encode boost in code to re-render on state change
-        code={`${Number(boost)}:${code}`}
+        code={`${pips.Eng.base + pips.Eng.mc}:${Number(boost)}:${code}`}
         aspect={0.7}
       />
     );
