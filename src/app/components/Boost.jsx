@@ -9,8 +9,6 @@ import autoBind from 'auto-bind';
  */
 export default class Boost extends TranslatedComponent {
   static propTypes = {
-    marker: PropTypes.string.isRequired,
-    ship: PropTypes.object.isRequired,
     boost: PropTypes.bool.isRequired,
     onChange: PropTypes.func.isRequired
   };
@@ -20,7 +18,7 @@ export default class Boost extends TranslatedComponent {
    * @param  {Object} props   React Component properties
    * @param  {Object} context   React Component context
    */
-  constructor(props, context) {
+  constructor(props) {
     super(props);
     autoBind(this);
   }
@@ -68,13 +66,12 @@ export default class Boost extends TranslatedComponent {
    * @return {React.Component} contents
    */
   render() {
-    const { formats, translate, units } = this.context.language;
-    const { ship, boost } = this.props;
-
-    // TODO disable if ship cannot boost
+    const { translate } = this.context.language;
     return (
       <span id='boost'>
-        <button id='boost' className={boost ? 'selected' : null} onClick={this._toggleBoost}>{translate('boost')}</button>
+        <button id='boost' className={this.props.boost ? 'selected' : null} onClick={this._toggleBoost}>
+          {translate('boost')}
+        </button>
       </span>
     );
   }
