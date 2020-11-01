@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import cn from 'classnames';
 import Persist from '../stores/Persist';
-import Ship from '../shipyard/Ship';
+import { Factory, Ship } from 'ed-forge';
 import { Insurance } from '../shipyard/Constants';
 import TranslatedComponent from './TranslatedComponent';
 import { ShoppingIcon } from './SvgIcons';
@@ -28,13 +28,15 @@ export default class CostSection extends TranslatedComponent {
     super(props);
     autoBind(this);
 
+    const { ship, buildName } = props;
+    this.shipType = ship.getShipType();
     this.state = {
-      retrofitName: this._defaultRetrofitName(props.ship, props.buildName),
+      retrofitName: Persist.hasBuild(ship.getShipType(), buildName) ? buildName : null,
       shipDiscount: Persist.getShipDiscount(),
       moduleDiscount: Persist.getModuleDiscount(),
       insurance: Insurance[Persist.getInsurance()],
       tab: Persist.getCostTab(),
-      buildOptions: Persist.getBuildsNamesFor(props.ship.getShipType()),
+      buildOptions: Persist.getBuildsNamesFor(ship.getShipType()),
       predicate: 'cr',
       desc: true,
       excluded: {},
@@ -43,36 +45,15 @@ export default class CostSection extends TranslatedComponent {
 
   /**
    * Create a ship instance to base/reference retrofit changes from
-   * @param  {string} ship         Ship
-   * @param  {string} name         Build name
-   * @param  {Ship} retrofitShip   Existing retrofit ship
    * @return {Ship}                Retrofit ship
    */
-  _buildRetrofitShip(ship, name, retrofitShip) {
-    // TODO: once ships have been persisted, this can be fixed
-    return ship;
-    // let data = Ships[shipId];   // Retrieve the basic ship properties, slots and defaults
-
-    // if (!retrofitShip) {  // Don't create a new instance unless needed
-    //   retrofitShip = new Ship(shipId, data.properties, data.slots);  // Create a new Ship for retrofit comparison
-    // }
-
-    // if (Persist.hasBuild(shipId, name)) {
-    //   retrofitShip.buildFrom(Persist.getBuild(shipId, name));  // Populate modules from existing build
-    // } else {
-    //   retrofitShip.buildWith(data.defaults);  // Populate with default components
-    // }
-    // return retrofitShip;
-  }
-
-  /**
-   * Get the default retrofit build name if it exists
-   * @param  {string} ship         Ship
-   * @param  {string} name         Build name
-   * @return {string}              Build name or null
-   */
-  _defaultRetrofitName(ship, name) {
-    return Persist.hasBuild(ship.getShipType(), name) ? name : null;
+  _buildRetrofitShip() {
+    const { retrofitName } = this.state;
+    if (Persist.hasBuild(this.shipType, retrofitName)) {
+      return new Ship(Persist.getBuild(this.shipType, retrofitName));
+    } else {
+      return Factory.newShip(this.shipType);
+    }
   }
 
   /**
@@ -220,8 +201,8 @@ export default class CostSection extends TranslatedComponent {
    */
   _retrofitInfo() {
     const { ship } = this.props;
-    const { desc, moduleDiscount, predicate, retrofitName } = this.state;
-    const retrofitShip = this._buildRetrofitShip(ship, retrofitName);
+    const { desc, moduleDiscount, predicate, retrofitName, excluded } = this.state;
+    const retrofitShip = this._buildRetrofitShip();
 
     const currentModules = ship.getModules();
     const oldModules = retrofitShip.getModules();
@@ -229,37 +210,38 @@ export default class CostSection extends TranslatedComponent {
     const sellModules = differenceBy(oldModules, currentModules, (m) => m.getItem());
 
     let modules = [];
-    for (let m of buyModules) {
-      const key = `buy_${m.getSlot()}`;
+    let totalCost = 0;
+    const addModule = (m, costFactor) => {
+      const key = `${m.getItem()}@${m.getSlot()}`;
+      const cost = costFactor * m.readMeta('cost') * (1 - moduleDiscount);
       modules.push({
-        key,
-        cost: m.readMeta('cost') * (1 - moduleDiscount),
-        buyRating: m.getClassRating(),
-        buyItem: m.readMeta('type'),
+        key, cost,
+        rating: m.getClassRating(),
+        item: m.readMeta('type'),
       });
+      if (!excluded[key]) {
+        totalCost += cost;
+      }
+    };
+    for (let m of buyModules) {
+      addModule(m, 1);
     }
     for (let m of sellModules) {
-      const key = `sell_${m.getSlot()}`;
-      modules.push({
-        key,
-        cost: -1 * m.readMeta('cost') * moduleDiscount,
-        sellRating: m.getClassRating(),
-        sellItem: m.readMeta('type'),
-      });
+      addModule(m, -1);
     }
 
     let _sortF = undefined;
     switch (predicate) {
-      case 'cr': _sortF = (o) => o.cost;
+      case 'cr': _sortF = (o) => o.cost; break;
       case 'm':
-      default: _sortF = (o) => o.buyItem || o.sellItem;
+      default: _sortF = (o) => o.item; break;
     };
 
     modules = sortBy(modules, _sortF);
     if (desc) {
       reverse(modules);
     }
-    return modules;
+    return [totalCost, modules];
   }
 
   /**
@@ -267,46 +249,18 @@ export default class CostSection extends TranslatedComponent {
    * @return {React.Component} Tab contents
    */
   _retrofitTab() {
-    let { excluded, moduleDiscount, retrofitName } = this.state;
+    let { buildOptions, excluded, moduleDiscount, retrofitName } = this.state;
     const { termtip, tooltip } = this.context;
     let { translate, formats, units } = this.context.language;
     let int = formats.int;
-    let options = [<option key='stock' value=''>{translate('Stock')}</option>];
 
-    for (let opt of this.state.buildOptions) {
-      options.push(<option key={opt} value={opt}>{opt}</option>);
-    }
-
-    const retrofitInfo = this._retrofitInfo();
-    const retrofitTotal = 0;
-    let rows = [];
-    for (let i of retrofitInfo) {
-      const disabled = excluded[i.key];
-      rows.push(
-        <tr key={i.key} className={cn('highlight', { disabled })}
-          onClick={() => this._toggleExcluded(i.key)}>
-          <td className='ptr' style={{ width: '1em' }}>{i.buyRating}</td>
-          <td className='le ptr shorten cap'>{translate(i.buyItem)}</td>
-          <td className='ptr' style={{ width: '1em' }}>{i.sellRating}</td>
-          <td className='le ptr shorten cap'>{translate(i.sellItem)}</td>
-          <td colSpan='2' className={cn('ri ptr', disabled ? 'disabled' : (i.cost < 0 ? 'secondary-disabled' : 'warning'))}>
-            {int(i.cost)}{units.CR}
-          </td>
-        </tr>
-      );
-      retrofitTotal += disabled ? 0 : i.cost;
-    }
-    if (!rows.length) {
-      rows = <tr><td colSpan='7' style={{ padding: '3em 0' }}>{translate('PHRASE_NO_RETROCH')}</td></tr>;
-    }
-
+    const [retrofitTotal, retrofitInfo] = this._retrofitInfo();
     return <div>
       <div className='scroll-x'>
         <table style={{ width: '100%' }}>
           <thead>
             <tr className='main'>
-              <th colSpan='2' className='sortable le' onClick={() => this._sortBy('m')}>{translate('sell')}</th>
-              <th colSpan='2' className='sortable le' onClick={() => this._sortBy('m')}>{translate('buy')}</th>
+              <th colSpan='2' className='sortable le' onClick={() => this._sortBy('m')}>{translate('module')}</th>
               <th colSpan='2' className='sortable le' onClick={() => this._sortBy('cr')}>
                 {translate('net cost')}
                 {moduleDiscount ? <u className='cap optional-hide' style={{ marginLeft: '0.5em' }}>{`[${translate('modules')} -${formats.pct(moduleDiscount)}]`}</u> : null}
@@ -314,20 +268,33 @@ export default class CostSection extends TranslatedComponent {
             </tr>
           </thead>
           <tbody>
-            {rows}
+            {retrofitInfo.length ?
+              retrofitInfo.map((info) => (
+                <tr key={info.key} className={cn('highlight', { disabled: excluded[info.key] })}
+                  onClick={() => this._toggleExcluded(info.key)}>
+                  <td className='ptr' style={{ width: '1em' }}>{info.rating}</td>
+                  <td className='le ptr shorten cap'>{translate(info.item)}</td>
+                  <td colSpan="2" className={cn('ri ptr', excluded[info.key] ? 'disabled' : (info.cost < 0 ? 'secondary-disabled' : 'warning'))}>
+                    {int(info.cost)}{units.CR}
+                  </td>
+                </tr>
+              )) : (
+                <tr><td colSpan='7' style={{ padding: '3em 0' }}>{translate('PHRASE_NO_RETROCH')}</td></tr>
+              )}
             <tr className='ri'>
               <td className='lbl' ><button onClick={this._eddbShoppingList} onMouseOver={termtip.bind(null, 'PHRASE_REFIT_SHOPPING_LIST')} onMouseOut={tooltip.bind(null, null)}><ShoppingIcon className='lg' style={{ fill: 'black' }}/></button></td>
-              <td colSpan='3' className='lbl' >{translate('cost')}</td>
+              <td className='lbl' >{translate('cost')}</td>
               <td colSpan='2' className={cn('val', retrofitTotal > 0 ? 'warning' : 'secondary-disabled')} style={{ borderBottom:'none' }}>
                 {int(retrofitTotal)}{units.CR}
               </td>
             </tr>
             <tr className='ri'>
-              <td colSpan='4' className='lbl cap' >{translate('retrofit from')}</td>
+              <td colSpan='2' className='lbl cap' >{translate('retrofit from')}</td>
               <td className='val cen' style={{ borderRight: 'none', width: '1em' }}><u className='primary-disabled'>&#9662;</u></td>
               <td className='val' style={{ borderLeft:'none', padding: 0 }}>
                 <select style={{ width: '100%', padding: 0 }} value={retrofitName || translate('Stock')} onChange={this._onBaseRetrofitChange}>
-                  {options}
+                  <option key='stock' value=''>{translate('Stock')}</option>
+                  {buildOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
               </td>
             </tr>
