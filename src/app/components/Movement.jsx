@@ -1,36 +1,28 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import TranslatedComponent from './TranslatedComponent';
+import { ShipProps } from 'ed-forge';
+const { SPEED, BOOST_SPEED, ROLL, BOOST_ROLL, YAW, BOOST_YAW, PITCH, BOOST_PITCH } = ShipProps;
 
 /**
  * Movement
  */
 export default class Movement extends TranslatedComponent {
   static propTypes = {
-    marker: PropTypes.string.isRequired,
+    code: PropTypes.string.isRequired,
     ship: PropTypes.object.isRequired,
     boost: PropTypes.bool.isRequired,
-    eng: PropTypes.number.isRequired,
-    fuel: PropTypes.number.isRequired,
-    cargo: PropTypes.number.isRequired
+    pips: PropTypes.object.isRequired,
   };
-
-  /**
-   * Constructor
-   * @param  {Object} props   React Component properties
-   */
-  constructor(props) {
-    super(props);
-  }
 
   /**
    * Render movement
    * @return {React.Component} contents
    */
   render() {
-    const { ship, boost, eng, cargo, fuel } = this.props;
+    const { ship, boost } = this.props;
     const { language } = this.context;
-    const { formats, translate, units } = language;
+    const { formats } = language;
 
     return (
       <span id='movement'>
@@ -57,14 +49,10 @@ export default class Movement extends TranslatedComponent {
           <path d="M359.5 422.4l-1.2 19.3-1.6.4-10.7-16 .2-.2 13-3.4.3.4zm-9 5l5.2 7.8.6-9.3-5.7 1.2zm-10.5 24l-13.2 8.6-2.6-9.7 15.8 1z"/>
           <path d="M342 450l.4 1.5-16.2 10.7-.4-.2-3.5-13 .3-.3L342 450zm-14.3 7.6l7.7-5-9.2-.6 1.5 5.6z"/>
 
-          {/* Speed */}
-          <text x="470" y="30" strokeWidth='0'>{ship.canThrust(cargo, fuel) ? formats.int(ship.calcSpeed(eng, fuel, cargo, boost)) + 'm/s' : '-'}</text>
-          {/* Pitch */}
-          <text x="355" y="410" strokeWidth='0'>{ship.canThrust(cargo, fuel) ? formats.int(ship.calcPitch(eng, fuel, cargo, boost)) + '°/s' : '-'}</text>
-          {/* Roll */}
-          <text x="450" y="110" strokeWidth='0'>{ship.canThrust(cargo, fuel) ? formats.int(ship.calcRoll(eng, fuel, cargo, boost)) + '°/s' : '-'}</text>
-          {/* Yaw */}
-          <text x="160" y="430" strokeWidth='0'>{ship.canThrust(cargo, fuel) ? formats.int(ship.calcYaw(eng, fuel, cargo, boost)) + '°/s' : '-'}</text>
+          <text x="470" y="30" strokeWidth='0'>{formats.int(ship.get(boost ? BOOST_SPEED : SPEED)) + 'm/s'}</text>
+          <text x="355" y="410" strokeWidth='0'>{formats.int(ship.get(boost ? BOOST_PITCH : PITCH)) + '°/s'}</text>
+          <text x="450" y="110" strokeWidth='0'>{formats.int(ship.get(boost ? BOOST_ROLL : ROLL)) + '°/s'}</text>
+          <text x="160" y="430" strokeWidth='0'>{formats.int(ship.get(boost ? BOOST_YAW : YAW)) + '°/s'}</text>
         </svg>
       </span>);
   }
