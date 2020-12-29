@@ -116,7 +116,7 @@ export default class StandardSlotSection extends SlotSection {
       this._mkSlot(fsd),
       this._mkSlot(
         ship.getPowerDistributor(),
-        (m) => moduleGet(m, 'enginescapacity') <= ship.getBaseProperty('boostenergy'),
+        (m) => moduleGet(m, 'enginescapacity') <= ship.readProp('boostenergy'),
       ),
       this._mkSlot(ship.getLifeSupport()),
       this._mkSlot(ship.getSensors()),

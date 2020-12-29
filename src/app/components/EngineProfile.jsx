@@ -29,9 +29,9 @@ export default class EngineProfile extends TranslatedComponent {
     const { code, ship, pips, boost } = this.props;
 
     // Calculate bounds for our line chart
-    const minMass = ship.getBaseProperty('hullmass');
+    const minMass = ship.readProp('hullmass');
     const maxMass = ship.getThrusters().get('enginemaximalmass');
-    const baseSpeed = ship.getBaseProperty('speed');
+    const baseSpeed = ship.readProp('speed');
     const baseBoost = getBoostMultiplier(ship);
     const cb = (eng, boost, mass) => {
       const mult = getSpeedMultipliers(ship, mass)[(boost ? 4 : eng) / 0.5];

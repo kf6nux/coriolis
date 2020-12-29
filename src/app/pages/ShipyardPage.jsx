@@ -16,24 +16,24 @@ function shipSummary(shipId) {
 
   let coreSizes = ship.readMeta('coreSizes');
   let summary = {
-    baseArmour: ship.getBaseProperty('basearmour'),
-    baseShieldStrength: ship.getBaseProperty('baseshieldstrength'),
-    boost: ship.getBaseProperty('boost'),
+    baseArmour: ship.readProp('basearmour'),
+    baseShieldStrength: ship.readProp('baseshieldstrength'),
+    boost: ship.readProp('boost'),
     class: ship.readMeta('class'),
     crew: ship.readMeta('crew'),
     id: shipId,
-    hardness: ship.getBaseProperty('hardness'),
+    hardness: ship.readProp('hardness'),
     hpCount: 0,
-    hullMass: ship.getBaseProperty('hullmass'),
+    hullMass: ship.readProp('hullmass'),
     intCount: 0,
     manufacturer: ship.readMeta('manufacturer'),
-    masslock: ship.getBaseProperty('masslock'),
+    masslock: ship.readProp('masslock'),
     maxCargo: 0,
     maxPassengers: 0,
     hp: [0, 0, 0, 0, 0], // Utility, Small, Medium, Large, Huge
     int: [0, 0, 0, 0, 0, 0, 0, 0], // Sizes 1 - 8
     retailCost: ship.readMeta('retailCost'),
-    speed: ship.getBaseProperty('speed'),
+    speed: ship.readProp('speed'),
     standard: [
       'powerplant',
       'mainengines',
@@ -44,9 +44,9 @@ function shipSummary(shipId) {
       'fueltank'
     ].map(k => coreSizes[k]),
     agility:
-      ship.getBaseProperty('pitch') +
-      ship.getBaseProperty('yaw') +
-      ship.getBaseProperty('roll')
+      ship.readProp('pitch') +
+      ship.readProp('yaw') +
+      ship.readProp('roll')
   };
 
   // Count Hardpoints by class

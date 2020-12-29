@@ -39,7 +39,7 @@ export default class FSDProfile extends TranslatedComponent {
     const { translate } = language;
     const { code, ship } = this.props;
 
-    const minMass = ship.getBaseProperty('hullmass');
+    const minMass = ship.readProp('hullmass');
     const maxMass = ship.getThrusters().get('enginemaximalmass');
     const mass = ship.get(LADEN_MASS);
     const cb = (mass) => calculateJumpRange(ship, mass, Infinity, true);

@@ -183,16 +183,16 @@ export default class ShipSummaryTable extends TranslatedComponent {
                 <td>{round(ship.get(FUEL_CAPACITY))}{u.T}</td>
                 <td onMouseEnter={termtip.bind(null, 'TT_SUMMARY_HULL_MASS', { cap: 0 })}
                   onMouseLeave={hide}
-                >{ship.getBaseProperty('hullmass')}{u.T}</td>
+                >{ship.readProp('hullmass')}{u.T}</td>
                 <td onMouseEnter={termtip.bind(null, 'TT_SUMMARY_UNLADEN_MASS', { cap: 0 })}
                   onMouseLeave={hide}
                 >{int(ship.get(UNLADEN_MASS))}{u.T}</td>
                 <td onMouseEnter={termtip.bind(null, 'TT_SUMMARY_LADEN_MASS', { cap: 0 })}
                   onMouseLeave={hide}
                 >{int(ship.get(MAXIMUM_MASS))}{u.T}</td>
-                <td>{int(ship.getBaseProperty('hardness'))}</td>
+                <td>{int(ship.readProp('hardness'))}</td>
                 <td>{ship.readMeta('crew')}</td>
-                <td>{ship.getBaseProperty('masslock')}</td>
+                <td>{ship.readProp('masslock')}</td>
                 {/* TODO: boost intervall */}
                 <td>{NaN}</td>
                 {/* TODO: resting heat */}

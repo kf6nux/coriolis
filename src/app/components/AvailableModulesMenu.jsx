@@ -113,7 +113,7 @@ export default class AvailableModulesMenu extends TranslatedComponent {
 
         // Can only be true if shieldgenmaximalmass is defined, i.e. this
         // module must be a shield generator
-        let disabled = info.props.shieldgenmaximalmass < ship.getBaseProperty('hullmass');
+        let disabled = info.props.shieldgenmaximalmass < ship.readProp('hullmass');
         if (meta.experimental && !mountedModule.readMeta('experimental')) {
           disabled =
             4 <=
