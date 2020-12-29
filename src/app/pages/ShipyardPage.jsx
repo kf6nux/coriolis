@@ -102,7 +102,7 @@ export default class ShipyardPage extends Page {
 
     this.state = {
       title: 'Coriolis EDCD Edition - Shipyard',
-      shipPredicate: 'name',
+      shipPredicate: 'id',
       shipDesc: true,
       shipSummaries: ShipyardPage.cachedShipSummaries,
       compare: {},
@@ -276,7 +276,7 @@ export default class ShipyardPage extends Page {
       }
 
       if (valA == valB) {
-        if (a.name > b.name) {
+        if (a.id > b.id) {
           return 1;
         } else {
           return -1;
@@ -329,7 +329,7 @@ export default class ShipyardPage extends Page {
                   <th className="le rgt">&nbsp;</th>
                 </tr>
                 <tr className="main">
-                  <th className="sortable le rgt" onClick={sortShips('name')}>
+                  <th className="sortable le rgt" onClick={sortShips('id')}>
                     {translate('ship')}
                   </th>
                 </tr>
