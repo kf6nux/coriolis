@@ -25,11 +25,12 @@ const HARDPOINT_SLOT_LABELS = {
 export default class Slot extends TranslatedComponent {
   static propTypes = {
     currentMenu: PropTypes.any,
+    hideSearch: PropTypes.bool,
     m: PropTypes.instanceOf(Module),
     warning: PropTypes.func,
     drag: PropTypes.func,
     drop: PropTypes.func,
-    dropClass: PropTypes.string
+    dropClass: PropTypes.string,
   };
 
   /**
@@ -188,7 +189,7 @@ export default class Slot extends TranslatedComponent {
   render() {
     let language = this.context.language;
     let translate = language.translate;
-    let { currentMenu, m, dropClass, dragOver, warning } = this.props;
+    let { currentMenu, m, dropClass, dragOver, warning, hideSearch } = this.props;
     const { menuIndex } = this.state;
 
     // TODO: implement touch dragging
@@ -209,7 +210,7 @@ export default class Slot extends TranslatedComponent {
         </div>
         {selected && menuIndex === 0 &&
           <AvailableModulesMenu
-            m={m}
+            m={m} hideSearch={hideSearch}
             onSelect={(item) => {
               m.setItem(item);
               this.context.closeMenu();

@@ -23,6 +23,7 @@ export default class AvailableModulesMenu extends TranslatedComponent {
   static propTypes = {
     onSelect: PropTypes.func.isRequired,
     diffDetails: PropTypes.func,
+    hideSearch: PropTypes.bool,
     m: PropTypes.object,
     warning: PropTypes.func,
     slotDiv: PropTypes.object
@@ -196,7 +197,7 @@ export default class AvailableModulesMenu extends TranslatedComponent {
    * @returns {React.Component} Search component if available
    */
   _showSearch() {
-    if (this.props.modules instanceof Array) {
+    if (this.props.hideSearch) {
       return;
     }
     return (

@@ -91,7 +91,7 @@ export default class StandardSlotSection extends SlotSection {
    */
   _mkSlot(m, warning) {
     const { currentMenu } = this.props;
-    return <Slot key={m.getSlot()} m={m} warning={warning}
+    return <Slot key={m.getSlot()} m={m} warning={warning} hideSearch={true}
       currentMenu={currentMenu}
     />;
   }
