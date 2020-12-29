@@ -6,7 +6,7 @@ import cn from 'classnames';
 import { MountFixed, MountGimballed, MountTurret } from './SvgIcons';
 import FuzzySearch from 'react-fuzzy';
 import { getModuleInfo } from 'ed-forge/lib/data/items';
-import { groupBy, sortBy } from 'lodash';
+import { groupBy, mapValues, sortBy } from 'lodash';
 
 const PRESS_THRESHOLD = 500; // mouse/touch down threshold
 
@@ -54,31 +54,46 @@ export default class AvailableModulesMenu extends TranslatedComponent {
     let currentGroup;
 
     const modules = m.getApplicableItems().map(getModuleInfo);
-    const categories = groupBy(modules, (info) => info.meta.type);
+    const groups = mapValues(
+      groupBy(modules, (info) => info.meta.group),
+      (infos) => groupBy(infos, (info) => info.meta.type),
+    );
     // Build categories sorted by translated category name
-    const sortedKeys = sortBy(Object.keys(categories), translate);
-    for (const category of sortedKeys) {
-      const catName = translate(category);
-      const infos = categories[category];
-      list.push(
-        <div key={'div-' + category} className="select-group cap">{catName}</div>,
-        this._buildGroup(
-          m,
-          category,
-          infos,
-        ),
-      );
-      fuzzy.push(
-        ...infos.map((info) => {
-          const { meta } = info;
-          const mount = meta.mount ? ' ' + translate(meta.mount) : '';
-          return {
-            grp: category,
-            m: info.proto.Item,
-            name: `${meta.class}${meta.rating}${mount} ${catName}`,
-          };
-        }),
-      );
+    const groupKeys = sortBy(Object.keys(groups), translate);
+    for (const group of groupKeys) {
+      const groupName = translate(group);
+      if (groupKeys.length > 1) {
+        list.push(<div key={`group-${group}`} className="select-category upp">{groupName}</div>);
+      }
+
+      const categories = groups[group];
+      const categoryKeys = sortBy(Object.keys(categories), translate);
+      for (const category of categoryKeys) {
+        const categoryName = translate(category);
+        const infos = categories[category];
+        if (categoryKeys.length > 1) {
+          list.push(<div key={`category-${category}`} className="select-group cap">{categoryName}</div>);
+        }
+        list.push(
+          this._buildGroup(
+            m,
+            category,
+            infos,
+          ),
+        );
+        fuzzy.push(
+          ...infos.map((info) => {
+            const { meta } = info;
+            const mount = meta.mount ? ' ' + translate(meta.mount) : '';
+            return {
+              grp: groupName,
+              cat: categoryName,
+              m: info.proto.Item,
+              name: `${meta.class}${meta.rating}${mount} ${categoryName}`,
+            };
+          }),
+        );
+      }
     }
     return { list, currentGroup, fuzzy, trackingFocus: false };
   }
