@@ -7,6 +7,7 @@ import { MountFixed, MountGimballed, MountTurret } from './SvgIcons';
 import FuzzySearch from 'react-fuzzy';
 import { getModuleInfo } from 'ed-forge/lib/data/items';
 import { groupBy, mapValues, sortBy } from 'lodash';
+import autoBind from 'auto-bind';
 
 const PRESS_THRESHOLD = 500; // mouse/touch down threshold
 
@@ -36,8 +37,7 @@ export default class AvailableModulesMenu extends TranslatedComponent {
    */
   constructor(props, context) {
     super(props);
-    this._hideDiff = this._hideDiff.bind(this);
-    this._showSearch = this._showSearch.bind(this);
+    autoBind(this);
     this.state = this._initState(props, context);
   }
 

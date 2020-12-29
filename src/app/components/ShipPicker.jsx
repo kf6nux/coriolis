@@ -27,7 +27,7 @@ export default class ShipPicker extends TranslatedComponent {
    * @param {object} props  Properties react
    * @param {object} context   react context
    */
-  constructor(props, context) { // eslint-disable-line
+  constructor(props, context) {
     super(props);
     autoBind(this);
     this.state = { menuOpen: false };
