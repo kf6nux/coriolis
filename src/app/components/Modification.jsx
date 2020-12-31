@@ -10,9 +10,10 @@ import { Module } from 'ed-forge';
  */
 export default class Modification extends TranslatedComponent {
   static propTypes = {
+    highlight: PropTypes.bool,
     m: PropTypes.instanceOf(Module).isRequired,
     property: PropTypes.string.isRequired,
-    highlight: PropTypes.bool,
+    onSet: PropTypes.func.isRequired,
   };
 
   /**
@@ -21,19 +22,22 @@ export default class Modification extends TranslatedComponent {
    */
   constructor(props) {
     super(props);
-    this.state = {};
+    const { m, property } = props;
+    const { beneficial, unit, value } = m.getFormatted(property, true);
+    this.state = { beneficial, unit, value };
   }
 
   /**
    * Notify listeners that a new value has been entered and commited.
    */
   _updateFinished() {
-    const { m, property, value } = this.props;
+    const { onSet, m, property } = this.props;
     const { inputValue } = this.state;
     const numValue = Number(inputValue);
-    if (!isNaN(numValue) && value !== numValue) {
-      m.set(property, numValue);
-      this.setState({ inputValue: undefined });
+    if (!isNaN(numValue) && this.state.value !== numValue) {
+      onSet(property, numValue);
+      const { beneficial, unit, value } = m.getFormatted(property, true);
+      this.setState({ beneficial, unit, value });
     }
   }
 
@@ -43,8 +47,8 @@ export default class Modification extends TranslatedComponent {
    */
   render() {
     const { translate, formats } = this.context.language;
-    const { m, property, highlight, value } = this.props;
-    const { inputValue } = this.state;
+    const { highlight, m, property } = this.props;
+    const { beneficial, unit, value, inputValue } = this.state;
 
     // Some features only apply to specific modules; these features will be
     // undefined on items that do not belong to the same class. Filter these
@@ -66,10 +70,7 @@ export default class Modification extends TranslatedComponent {
                 <span>
                   <NumberEditor value={inputValue || value} stepModifier={1}
                     decimals={2} step={0.01} style={{ textAlign: 'right' }}
-                    className={cn(
-                      'cb',
-                      { 'greyed-out': !highlight },
-                    )}
+                    className={cn('cb', { 'greyed-out': !highlight })}
                     onKeyDown={(event) => {
                       if (event.key == 'Enter') {
                         this._updateFinished();
@@ -81,17 +82,13 @@ export default class Modification extends TranslatedComponent {
                         this.setState({ inputValue });
                       }
                     }} />
-                  {/* TODO: support unit */}
-                  <span className="unit-container">{/* unit */}</span>
+                  <span className="unit-container">{unit}</span>
                 </span>
               </td>
               <td style={{ textAlign: 'center' }}
                 className={cn({
-                  // TODO:
-                  // secondary: isBeneficial,
-                  // Is beneficial might be undefined; in this case we have a 0%
-                  // modifier. Check this here.
-                  // warning: isBeneficial === false,
+                  secondary: beneficial,
+                  warning: beneficial === false,
                 })}
               // TODO: support absolute modifiers
               >{formats.pct(m.getModifier(property))}</td>

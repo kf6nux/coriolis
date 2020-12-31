@@ -67,7 +67,7 @@ export default class ModificationsMenu extends TranslatedComponent {
             // onMouseOver={termtip.bind(null, tooltipContent)}
             // onMouseOut={tooltip.bind(null, null)}
             onClick={() => {
-              m.setBlueprint(blueprint, grade);
+              m.setBlueprint(blueprint, grade, 1);
               this.setState({
                 blueprintMenuOpened: false,
                 specialMenuOpened: true,
@@ -144,8 +144,19 @@ export default class ModificationsMenu extends TranslatedComponent {
    */
   _mkModification(property, highlight) {
     const { m } = this.props;
-    return <Modification key={property} highlight={highlight} m={m}
-      property={property} value={m.get(property)} />;
+
+    let onSet = m.set.bind(m);
+    // Show resistance instead of effectiveness
+    if (property.endsWith('effectiveness')) {
+      const oldProperty = property;
+      property = property.replace('effectiveness', 'resistance');
+      onSet = (_, v) => {
+        m.set(oldProperty, 1 - v / 100);
+      };
+    }
+
+    return <Modification key={property} m={m} property={property}
+      onSet={onSet} highlight={highlight} />;
   }
 
   /**
@@ -275,7 +286,11 @@ export default class ModificationsMenu extends TranslatedComponent {
               m.resetEngineering();
               this.selectedModRef = null;
               this.selectedSpecialRef = null;
-              this.setState({ blueprintProgress: undefined });
+              tooltip(null);
+              this.setState({
+                blueprintMenuOpened: true,
+                blueprintProgress: undefined,
+              });
             }}
             onMouseOver={termtip.bind(null, 'PHRASE_BLUEPRINT_RESET')}
             onMouseOut={tooltip.bind(null, null)}
