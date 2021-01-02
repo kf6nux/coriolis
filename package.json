@@ -140,7 +140,7 @@
     "react-extras": "^0.7.1",
     "react-fuzzy": "^0.5.2",
     "react-ga": "^2.5.3",
-    "react-number-editor": "Athanasius/react-number-editor.git#miggy",
+    "react-number-editor": "^4.0.3",
     "recharts": "^1.2.0",
     "register-service-worker": "^1.5.2",
     "superagent": "^3.8.3"
