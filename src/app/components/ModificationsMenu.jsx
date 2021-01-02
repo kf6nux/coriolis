@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import * as _ from 'lodash';
+import { chain, keys } from 'lodash';
 import TranslatedComponent from './TranslatedComponent';
 import { stopCtxPropagation } from '../utils/UtilityFunctions';
 import cn from 'classnames';
@@ -161,21 +161,39 @@ export default class ModificationsMenu extends TranslatedComponent {
 
   /**
    * Render the modifications
-   * @param  {Object} props   React Component properties
    * @return {Array}          Array of React Components
    */
-  _renderModifications(props) {
-    const { m } = props;
+  _renderModifications() {
+    const { m } = this.props;
+    const { translate } = this.context.language;
 
     const blueprintFeatures = getBlueprintInfo(m.getBlueprint()).features[
       m.getBlueprintGrade()
     ];
-    const blueprintModifications = Object.keys(blueprintFeatures)
-      .map((feature) => this._mkModification(feature, true))
-      .filter(Boolean);
-    const moduleModifications = Object.keys(getModuleInfo(m.getItem()).props)
+    const blueprintModifications = chain(keys(blueprintFeatures))
+      .map((feature) => [
+        <tr>
+          <th colSpan="4">
+            <span className="cb">{translate(feature)}</span>
+          </th>
+        </tr>,
+        this._mkModification(feature, true),
+      ])
+      .filter(([_, mod]) => Boolean(mod))
+      .flatMap()
+      .value();
+    const moduleModifications = chain(keys(getModuleInfo(m.getItem()).props))
       .filter((prop) => !blueprintFeatures[prop])
-      .map((prop) => this._mkModification(prop, false));
+      .map((prop) => [
+        <tr>
+          <th colSpan="4">
+            <span className="cb">{translate(prop)}</span>
+          </th>
+        </tr>,
+        this._mkModification(prop, false),
+      ])
+      .flatMap()
+      .value();
 
     return blueprintModifications.concat(moduleModifications);
   }
@@ -362,7 +380,13 @@ export default class ModificationsMenu extends TranslatedComponent {
           <span
             onMouseOver={termtip.bind(null, 'HELP_MODIFICATIONS_MENU')}
             onMouseOut={tooltip.bind(null, null)}
-          >{this._renderModifications(this.props)}</span>
+          >
+            <table style={{ width: '100%' }}>
+              <tbody>
+                {this._renderModifications()}
+              </tbody>
+            </table>
+          </span>
         );
     }
 
