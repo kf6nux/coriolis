@@ -67,6 +67,7 @@ export default class Modification extends TranslatedComponent {
       return null;
     }
 
+    const { value: modifierValue, unit: modifierUnit } = m.getModifierFormatted(property);
     return (
         <tr>
           <td>
@@ -100,7 +101,7 @@ export default class Modification extends TranslatedComponent {
               secondary: beneficial,
               warning: beneficial === false,
             })}
-          >{formats.pct(m.getModifier(property))}</td>
+          >{formats.f2(modifierValue)}{modifierUnit || ''}</td>
         </tr>
     );
   }
