@@ -11,6 +11,7 @@ import { blueprintTooltip } from '../utils/BlueprintFunctions';
 import { Module } from 'ed-forge';
 import { REG_MILITARY_SLOT, REG_HARDPOINT_SLOT } from 'ed-forge/lib/data/slots';
 import autoBind from 'auto-bind';
+import { toPairs } from 'lodash';
 
 const HARDPOINT_SLOT_LABELS = {
   1: 'S',
@@ -31,6 +32,8 @@ export default class Slot extends TranslatedComponent {
     drag: PropTypes.func,
     drop: PropTypes.func,
     dropClass: PropTypes.string,
+    propsToShow: PropTypes.object.isRequired,
+    onPropToggle: PropTypes.func.isRequired,
   };
 
   /**
@@ -69,7 +72,7 @@ export default class Slot extends TranslatedComponent {
    * @return {React.Component}      Slot contents
    */
   _getSlotDetails() {
-    const { m } = this.props;
+    const { m, propsToShow } = this.props;
     let { termtip, tooltip, language } = this.context;
     const { translate, units, formats } = language;
 
@@ -80,7 +83,7 @@ export default class Slot extends TranslatedComponent {
         )}
       </div>;
     } else {
-      let classRating = String(m.getClass()) + m.getRating();
+      let classRating = m.getClassRating();
       let { drag, drop } = this.props;
 
       // Modifications tooltip shows blueprint and grade, if available
@@ -102,10 +105,9 @@ export default class Slot extends TranslatedComponent {
       // }
 
       let mass = m.get('mass') || m.get('cargo') || m.get('fuel') || 0;
-      const disabled = !m.isEnabled();
       return (
         <div
-          className={cn('details', { disabled })}
+          className={cn('details', { disabled: !m.isEnabled() })}
           draggable="true"
           onDragStart={drag}
           onDragEnd={drop}
@@ -128,6 +130,16 @@ export default class Slot extends TranslatedComponent {
             </div>
           </div>
           <div className={'cb'}>
+            {toPairs(propsToShow).sort().map(([prop, show]) => {
+              const { unit, value } = m.getFormatted(prop, true);
+              if (!show || isNaN(value)) {
+                return null;
+              } else {
+                return (<div className='l'>
+                  {translate(prop)}: {formats.round(value)}{unit}
+                </div>);
+              }
+            })}
             {(m.getApplicableBlueprints() || []).length > 0 ? (
               <div className="r">
                 <button onClick={this._openMenu.bind(this, 1)}
@@ -189,7 +201,10 @@ export default class Slot extends TranslatedComponent {
   render() {
     let language = this.context.language;
     let translate = language.translate;
-    let { currentMenu, m, dropClass, dragOver, warning, hideSearch } = this.props;
+    let {
+      currentMenu, m, dropClass, dragOver, warning, hideSearch, propsToShow,
+      onPropToggle,
+    } = this.props;
     const { menuIndex } = this.state;
 
     // TODO: implement touch dragging
@@ -219,7 +234,8 @@ export default class Slot extends TranslatedComponent {
             // diffDetails={diffDetails.bind(ship, this.context.language)}
           />}
         {selected && menuIndex === 1 &&
-          <ModificationsMenu m={m} />}
+          <ModificationsMenu m={m} propsToShow={propsToShow}
+            onPropToggle={onPropToggle} />}
       </div>
     );
   }

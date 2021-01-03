@@ -17,6 +17,8 @@ export default class SlotSection extends TranslatedComponent {
     ship: PropTypes.instanceOf(Ship),
     code: PropTypes.string.isRequired,
     togglePwr: PropTypes.func,
+    propsToShow: PropTypes.object.isRequired,
+    onPropToggle: PropTypes.func.isRequired,
   };
 
   /**

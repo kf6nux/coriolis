@@ -52,7 +52,7 @@ export default class UtilitySlotSection extends SlotSection {
    */
   _getSlots() {
     let slots = [];
-    let { ship, currentMenu } = this.props;
+    let { ship, currentMenu, propsToShow, onPropToggle } = this.props;
     let { originSlot, targetSlot } = this.state;
 
     for (let h of ship.getUtilities(undefined, true)) {
@@ -67,6 +67,8 @@ export default class UtilitySlotSection extends SlotSection {
         dropClass={this._dropClass(h, originSlot, targetSlot)}
         m={h}
         enabled={h.enabled ? true : false}
+        propsToShow={propsToShow}
+        onPropToggle={onPropToggle}
       />);
     }
 

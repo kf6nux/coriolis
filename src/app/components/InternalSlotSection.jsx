@@ -179,7 +179,7 @@ export default class InternalSlotSection extends SlotSection {
    */
   _getSlots() {
     let slots = [];
-    let { currentMenu, ship } = this.props;
+    let { currentMenu, ship, propsToShow, onPropToggle } = this.props;
     let { originSlot, targetSlot } = this.state;
 
     for (const m of ship.getInternals(undefined, true)) {
@@ -191,6 +191,8 @@ export default class InternalSlotSection extends SlotSection {
         dragOver={this._dragOverSlot.bind(this, m)}
         drop={this._drop}
         dropClass={this._dropClass(m, originSlot, targetSlot)}
+        propsToShow={propsToShow}
+        onPropToggle={onPropToggle}
       />);
     }
 

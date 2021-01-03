@@ -51,7 +51,7 @@ export default class HardpointSlotSection extends SlotSection {
    * @return {Array} Array of Slots
    */
   _getSlots() {
-    let { ship, currentMenu } = this.props;
+    let { ship, currentMenu, propsToShow, onPropToggle } = this.props;
     let { originSlot, targetSlot } = this.state;
     let slots = [];
 
@@ -66,6 +66,8 @@ export default class HardpointSlotSection extends SlotSection {
         dropClass={this._dropClass(h, originSlot, targetSlot)}
         m={h}
         enabled={h.enabled ? true : false}
+        propsToShow={propsToShow}
+        onPropToggle={onPropToggle}
       />);
     }
 

@@ -40,6 +40,75 @@ import ModalPermalink from '../components/ModalPermalink';
 import ModalShoppingList from '../components/ModalShoppingList';
 import ModalOrbis from '../components/ModalOrbis';
 import autoBind from 'auto-bind';
+import { assign } from 'lodash';
+
+const SHOW_BY_DEFAULT = {
+  'cabincapacity': true,
+  'causticresistance': true,
+  'explosiveresistance': true,
+  'kineticresistance': true,
+  'thermicresistance': true,
+  'heatefficiency': true,
+  'powercapacity': true,
+  'integrity': true,
+  'engineminimalmass': true,
+  'engineoptimalmass': true,
+  'enginemaximalmass': true,
+  'engineoptperformance': true,
+  'fsdoptimalmass': true,
+  'maxfuel': true,
+  'dronelifetime': true,
+  'weaponscapacity': true,
+  'weaponsrecharge': true,
+  'systemscapacity': true,
+  'systemsrecharge': true,
+  'enginescapacity': true,
+  'enginesrecharge': true,
+  'range': true,
+  'shieldgenmaximalmass': true,
+  'shieldgenminimalmass': true,
+  'shieldgenoptimalmass': true,
+  'brokenregenrate': true,
+  'regenrate': true,
+  'shieldgenstrength': true,
+  'ammomaximum': true,
+  'afmrepaircapacity': true,
+  'fsdinterdictorfacinglimit': true,
+  'fuelscooprate': true,
+  'bays': true,
+  'rebuildsperbay': true,
+  'maximumrange': true,
+  'maxactivedrones': true,
+  'refinerybins': true,
+  'shieldbankduration': true,
+  'shieldbankspinup': true,
+  'shieldbankreinforcement': true,
+  'defencemodifierhealthaddition': true,
+  'protection': true,
+  'dronehackingtime': true,
+  'defencemodifiershieldaddition': true,
+  'jumpboost': true,
+  'damagepersecond': true,
+  'damage': true,
+  'energypersecond': true,
+  'heatpersecond': true,
+  'sustaineddamagepersecond': true,
+  'damageperenergy': true,
+  'rateoffire': true,
+  'maximumrange': true,
+  'damagefalloffrange': true,
+  'armourpenetration': true,
+  'sustainedenergypersecond': true,
+  'sustainedheatpersecond': true,
+  'ammoclipsize': true,
+  'ammomaximum': true,
+  'reloadtime': true,
+  'shotspeed': true,
+  'defencemodifiershieldmultiplier': true,
+  'scannerrange': true,
+  'scannertimetoscan': true,
+  'maxangle': true,
+};
 
 /**
  * The Outfitting Page
@@ -81,6 +150,7 @@ export default class OutfittingPage extends Page {
       ship,
       code: ship.compress(),
       savedCode,
+      propsToShow: assign({}, SHOW_BY_DEFAULT),
     };
   }
 
@@ -184,6 +254,19 @@ export default class OutfittingPage extends Page {
       },
       () => this._updateRoute()
     );
+  }
+
+  _propToShowToggled(propertyName, newStatus) {
+    const { propsToShow } = this.state;
+    if (newStatus === propsToShow[propertyName]) {
+      return;
+    }
+    if (newStatus) {
+      propsToShow[propertyName] = true;
+    } else {
+      delete propsToShow[propertyName];
+    }
+    this.setState({ propsToShow: assign({}, propsToShow) });
   }
 
   /**
@@ -632,10 +715,14 @@ export default class OutfittingPage extends Page {
 
         {/* Main tables */}
         <ShipSummaryTable ship={ship} code={code} />
-        <StandardSlotSection ship={ship} code={code} currentMenu={menu} />
-        <InternalSlotSection ship={ship} code={code} currentMenu={menu} />
-        <HardpointSlotSection ship={ship} code={code} currentMenu={menu} />
-        <UtilitySlotSection ship={ship} code={code} currentMenu={menu} />
+        <StandardSlotSection ship={ship} code={code} currentMenu={menu}
+          propsToShow={propsToShow} onPropToggle={this._propToShowToggled} />
+        <InternalSlotSection ship={ship} code={code} currentMenu={menu}
+          propsToShow={propsToShow} onPropToggle={this._propToShowToggled} />
+        <HardpointSlotSection ship={ship} code={code} currentMenu={menu}
+          propsToShow={propsToShow} onPropToggle={this._propToShowToggled} />
+        <UtilitySlotSection ship={ship} code={code} currentMenu={menu}
+          propsToShow={propsToShow} onPropToggle={this._propToShowToggled} />
 
         {/* Control of ship and opponent */}
         {/* <div className="group quarter">

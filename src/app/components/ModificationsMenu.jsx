@@ -19,6 +19,8 @@ export default class ModificationsMenu extends TranslatedComponent {
   static propTypes = {
     className: PropTypes.string,
     m: PropTypes.object.isRequired,
+    propsToShow: PropTypes.object.isRequired,
+    onPropToggle: PropTypes.func.isRequired,
   };
 
   /**
@@ -143,7 +145,7 @@ export default class ModificationsMenu extends TranslatedComponent {
    * Create a modification component
    */
   _mkModification(property, highlight) {
-    const { m } = this.props;
+    const { m, propsToShow, onPropToggle } = this.props;
 
     let onSet = m.set.bind(m);
     // Show resistance instead of effectiveness
@@ -156,7 +158,8 @@ export default class ModificationsMenu extends TranslatedComponent {
     }
 
     return <Modification key={property} m={m} property={property}
-      onSet={onSet} highlight={highlight} />;
+      onSet={onSet} highlight={highlight} showProp={propsToShow[property]}
+      onPropToggle={onPropToggle} />;
   }
 
   /**

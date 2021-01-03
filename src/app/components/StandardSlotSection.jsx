@@ -90,9 +90,9 @@ export default class StandardSlotSection extends SlotSection {
    * @return {React.Component} Slot component
    */
   _mkSlot(m, warning) {
-    const { currentMenu } = this.props;
+    const { currentMenu, propsToShow, onPropToggle } = this.props;
     return <Slot key={m.getSlot()} m={m} warning={warning} hideSearch={true}
-      currentMenu={currentMenu}
+      currentMenu={currentMenu} propsToShow={propsToShow} onPropToggle={onPropToggle}
     />;
   }
 

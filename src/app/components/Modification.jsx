@@ -14,6 +14,8 @@ export default class Modification extends TranslatedComponent {
     m: PropTypes.instanceOf(Module).isRequired,
     property: PropTypes.string.isRequired,
     onSet: PropTypes.func.isRequired,
+    showProp: PropTypes.object.isRequired,
+    onPropToggle: PropTypes.func.isRequired,
   };
 
   /**
@@ -22,9 +24,9 @@ export default class Modification extends TranslatedComponent {
    */
   constructor(props) {
     super(props);
-    const { m, property } = props;
+    const { m, property, showProp } = props;
     const { beneficial, unit, value } = m.getFormatted(property, true);
-    this.state = { beneficial, unit, value };
+    this.state = { beneficial, unit, value, showProp };
   }
 
   /**
@@ -41,6 +43,14 @@ export default class Modification extends TranslatedComponent {
     }
   }
 
+  _toggleProperty() {
+    const { onPropToggle, property } = this.props;
+    const showProp = !this.state.showProp;
+    // TODO: defer until menu closed
+    onPropToggle(property, showProp);
+    this.setState({ showProp });
+  }
+
   /**
    * Render the modification
    * @return {React.Component} modification
@@ -48,7 +58,7 @@ export default class Modification extends TranslatedComponent {
   render() {
     const { formats } = this.context.language;
     const { highlight, m, property } = this.props;
-    const { beneficial, unit, value, inputValue } = this.state;
+    const { beneficial, unit, value, inputValue, showProp } = this.state;
 
     // Some features only apply to specific modules; these features will be
     // undefined on items that do not belong to the same class. Filter these
@@ -61,7 +71,7 @@ export default class Modification extends TranslatedComponent {
         <tr>
           <td>
             <span>
-              <input type="checkbox" checked={true} onClick={() => {}}/>
+              <input type="checkbox" checked={showProp} onClick={() => this._toggleProperty()}/>
             </span>
           </td>
           <td className="input-container">
