@@ -14,7 +14,7 @@ export default class Modification extends TranslatedComponent {
     m: PropTypes.instanceOf(Module).isRequired,
     property: PropTypes.string.isRequired,
     onSet: PropTypes.func.isRequired,
-    showProp: PropTypes.object.isRequired,
+    showProp: PropTypes.object,
     onPropToggle: PropTypes.func.isRequired,
   };
 
