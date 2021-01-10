@@ -69,40 +69,40 @@ export default class Modification extends TranslatedComponent {
 
     const { value: modifierValue, unit: modifierUnit } = m.getModifierFormatted(property);
     return (
-        <tr>
-          <td>
-            <span>
-              <input type="checkbox" checked={showProp} onClick={() => this._toggleProperty()}/>
-            </span>
-          </td>
-          <td className="input-container">
-            <span>
-              <NumberEditor value={inputValue || value} stepModifier={1}
-                decimals={2} step={0.01} style={{ textAlign: 'right', width: '100%' }}
-                className={cn('cb', { 'greyed-out': !highlight })}
-                onKeyDown={(event) => {
-                  if (event.key == 'Enter') {
-                    this._updateFinished();
-                    event.stopPropagation();
-                  }
-                }}
-                onValueChange={(inputValue) => {
-                  if (inputValue.length <= 15) {
-                    this.setState({ inputValue });
-                  }
-                }} />
-            </span>
-          </td>
-          <td style={{ textAlign: 'left' }}>
-              <span className="unit-container">{unit}</span>
-          </td>
-          <td style={{ textAlign: 'center' }}
-            className={cn({
-              secondary: beneficial,
-              warning: beneficial === false,
-            })}
-          >{formats.f2(modifierValue)}{modifierUnit || ''}</td>
-        </tr>
+      <tr>
+        <td>
+          <span>
+            <input type="checkbox" checked={showProp} onClick={() => this._toggleProperty()}/>
+          </span>
+        </td>
+        <td className="input-container">
+          <span>
+            <NumberEditor value={inputValue || value} stepModifier={1}
+              decimals={2} step={0.01} style={{ textAlign: 'right', width: '100%' }}
+              className={cn('cb', { 'greyed-out': !highlight })}
+              onKeyDown={(event) => {
+                if (event.key == 'Enter') {
+                  this._updateFinished();
+                  event.stopPropagation();
+                }
+              }}
+              onValueChange={(inputValue) => {
+                if (inputValue.length <= 15) {
+                  this.setState({ inputValue });
+                }
+              }} />
+          </span>
+        </td>
+        <td style={{ textAlign: 'left' }}>
+          <span className="unit-container">{unit}</span>
+        </td>
+        <td style={{ textAlign: 'center' }}
+          className={cn({
+            secondary: beneficial,
+            warning: beneficial === false,
+          })}
+        >{formats.f2(modifierValue)}{modifierUnit || ''}</td>
+      </tr>
     );
   }
 }
