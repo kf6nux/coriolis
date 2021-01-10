@@ -1,6 +1,9 @@
 import React from 'react';
 import { Modifications } from 'coriolis-data/dist';
 import { STATS_FORMATTING } from '../shipyard/StatsFormatting';
+import { Module } from 'ed-forge';
+import { getBlueprintInfo } from 'ed-forge/lib/data/blueprints';
+import { keys, uniq } from 'lodash';
 
 /**
  * Generate a tooltip with details of a blueprint's specials
@@ -63,153 +66,23 @@ export function specialToolTip(translate, blueprint, grp, m, specialName) {
 }
 
 /**
- * Generate a tooltip with details of a blueprint's effects
- * @param   {Object}  translate   The translate object
- * @param   {Object}  blueprint   The blueprint at the required grade
- * @param   {Object}  m           The module to compare with
- * @returns {Object}              The react components
+ * Generate a tooltip with details and preview of a blueprint's effects
+ * @param {Object} language The language object
+ * @param {Module} m The module to compare with
+ * @param {string} previewBP Blueprint to preview
+ * @param {number} previewGrade Grade to preview
+ * @returns {Object} The react components
  */
-export function blueprintTooltip(translate, blueprint, m) {
-  const effects = [];
-  if (!blueprint || !blueprint.features) {
-    return undefined;
-  }
-  for (const feature in blueprint.features) {
-    const featureIsBeneficial = isBeneficial(feature, blueprint.features[feature]);
-    const featureDef = Modifications.modifications[feature];
-    if (!featureDef.hidden) {
-      let symbol = '';
-      if (feature === 'jitter') {
-        symbol = '°';
-      } else if (featureDef.type === 'percentage') {
-        symbol = '%';
-      }
-      let lowerBound = blueprint.features[feature][0];
-      let upperBound = blueprint.features[feature][1];
-      if (featureDef.type === 'percentage') {
-        lowerBound = Math.round(lowerBound * 1000) / 10;
-        upperBound = Math.round(upperBound * 1000) / 10;
-      }
-      const lowerIsBeneficial  = isValueBeneficial(feature, lowerBound);
-      const upperIsBeneficial  = isValueBeneficial(feature, upperBound);
-      if (m) {
-        // We have a module - add in the current value
-        let current = m.getModValue(feature);
-        if (featureDef.type === 'percentage' || featureDef.name === 'burst' || featureDef.name === 'burstrof') {
-          current = Math.round(current / 10) / 10;
-        } else if (featureDef.type === 'numeric') {
-          current /= 100;
-        }
-        const currentIsBeneficial  = isValueBeneficial(feature, current);
-        effects.push(
-          <tr key={feature}>
-            <td style={{ textAlign: 'left' }}>{translate(feature)}</td>
-            <td className={lowerBound === 0 ? '' : lowerIsBeneficial ? 'secondary' : 'warning'} style={{ textAlign: 'right' }}>{lowerBound}{symbol}</td>
-            <td className={current === 0 ? '' : currentIsBeneficial ? 'secondary' : 'warning'} style={{ textAlign: 'right' }}>{current}{symbol}</td>
-            <td className={upperBound === 0 ? '' : upperIsBeneficial ? 'secondary' : 'warning'} style={{ textAlign: 'right' }}>{upperBound}{symbol}</td>
-          </tr>
-        );
-      } else {
-        // We do not have a module, no value
-        effects.push(
-          <tr key={feature}>
-            <td style={{ textAlign: 'left' }}>{translate(feature)}</td>
-            <td className={lowerBound === 0 ? '' : lowerIsBeneficial ? 'secondary' : 'warning'} style={{ textAlign: 'right' }}>{lowerBound}{symbol}</td>
-            <td className={upperBound === 0 ? '' : upperIsBeneficial ? 'secondary' : 'warning'} style={{ textAlign: 'right' }}>{upperBound}{symbol}</td>
-          </tr>
-        );
-      }
-    }
-  }
-  if (m) {
-    // Because we have a module add in any benefits that aren't part of the primary blueprint
-    for (const feature in m.mods) {
-      if (!blueprint.features[feature]) {
-        const featureDef = Modifications.modifications[feature];
-        if (featureDef && !featureDef.hidden) {
-          let symbol = '';
-          if (feature === 'jitter') {
-            symbol = '°';
-          } else if (featureDef.type === 'percentage') {
-            symbol = '%';
-          }
-          let current = m.getModValue(feature);
-          if (featureDef.type === 'percentage' || featureDef.name === 'burst' || featureDef.name === 'burstrof') {
-            current = Math.round(current / 10) / 10;
-          } else if (featureDef.type === 'numeric') {
-            current /= 100;
-          }
-          const currentIsBeneficial  = isValueBeneficial(feature, current);
-          effects.push(
-            <tr key={feature}>
-              <td style={{ textAlign: 'left' }}>{translate(feature)}</td>
-              <td>&nbsp;</td>
-              <td className={current === 0 ? '' : currentIsBeneficial ? 'secondary' : 'warning'} style={{ textAlign: 'right' }}>{current}{symbol}</td>
-              <td>&nbsp;</td>
-            </tr>
-          );
-        }
-      }
-    }
-
-    // We also add in any benefits from specials that aren't covered above
-    if (m.blueprint && m.blueprint.special) {
-      for (const feature in Modifications.modifierActions[m.blueprint.special.edname]) {
-        if (!blueprint.features[feature] && !m.mods.feature) {
-          const featureDef = Modifications.modifications[feature];
-          if (featureDef && !featureDef.hidden) {
-            let symbol = '';
-            if (feature === 'jitter') {
-              symbol = '°';
-            } else if (featureDef.type === 'percentage') {
-              symbol = '%';
-            }
-            let current = m.getModValue(feature);
-            if (featureDef.type === 'percentage' || featureDef.name === 'burst' || featureDef.name === 'burstrof') {
-              current = Math.round(current / 10) / 10;
-            } else if (featureDef.type === 'numeric') {
-              current /= 100;
-            }
-            const currentIsBeneficial  = isValueBeneficial(feature, current);
-            effects.push(
-              <tr key={feature}>
-                <td style={{ textAlign: 'left' }}>{translate(feature)}</td>
-                <td>&nbsp;</td>
-                <td className={current === 0 ? '' : currentIsBeneficial ? 'secondary' : 'warning'} style={{ textAlign: 'right' }}>{current}{symbol}</td>
-                <td>&nbsp;</td>
-              </tr>
-            );
-          }
-        }
-      }
-    }
+export function blueprintTooltip(language, m, previewBP, previewGrade) {
+  const { translate, formats } = language;
+  const blueprint = previewBP || m.getBlueprint();
+  const grade = previewGrade || m.getBlueprintGrade();
+  if (!blueprint) {
+    return null;
   }
 
-  let components;
-  if (!m) {
-    components = [];
-    for (const component in blueprint.components) {
-      components.push(
-        <tr key={component}>
-          <td style={{ textAlign: 'left' }}>{translate(component)}</td>
-          <td style={{ textAlign: 'right' }}>{blueprint.components[component]}</td>
-        </tr>
-      );
-    }
-  }
-
-  let engineersList = [];
-  // TODO:
-  // if (engineers) {
-  //   engineersList = [];
-  //   for (const engineer of engineers) {
-  //     engineersList.push(
-  //       <tr key={engineer}>
-  //         <td style={{ textAlign: 'left' }}>{engineer}</td>
-  //       </tr>
-  //     );
-  //   }
-  // }
+  const bpFeatures = getBlueprintInfo(blueprint).features[grade];
+  const features = uniq(m.getModifiedProperties().concat(keys(bpFeatures)));
 
   return (
     <div>
@@ -218,35 +91,37 @@ export function blueprintTooltip(translate, blueprint, m) {
           <tr>
             <td>{translate('feature')}</td>
             <td>{translate('worst')}</td>
-            {m ? <td>{translate('current')}</td> : null }
+            <td>{translate('current')}</td>
             <td>{translate('best')}</td>
           </tr>
         </thead>
         <tbody>
-          {effects}
+          {features.map((prop) => {
+            const { value, unit, beneficial } = m.getModifierFormatted(prop);
+            if (!bpFeatures[prop] && !value) {
+              // Can happen for exported synthetics
+              return null;
+            }
+            const { min, max } = bpFeatures[prop] || {};
+            // If the product of value and min/max is positive, both values
+            // point into the same direction, i.e. positive/negative.
+            const minBeneficial  = (value * min) > 0 === beneficial;
+            const maxBeneficial  = (value * max) > 0 === beneficial;
+            return (<tr key={prop}>
+              <td style={{ textAlign: 'left' }}>{translate(prop)}</td>
+              <td className={!min ? '' : minBeneficial ? 'secondary' : 'warning'} style={{ textAlign: 'right' }}>
+                {!isNaN(min) && formats.round(min * 100)}{!isNaN(min) && unit}
+              </td>
+              <td className={!value ? '' : beneficial ? 'secondary' : 'warning'} style={{ textAlign: 'right' }}>
+                {formats.round(value || 0)}{unit}
+              </td>
+              <td className={!max ? '' : maxBeneficial ? 'secondary' : 'warning'} style={{ textAlign: 'right' }}>
+                {!isNaN(max) && formats.round(max * 100)}{!isNaN(max) && unit}
+              </td>
+            </tr>);
+          })}
         </tbody>
       </table>
-      { components ?  <table width='100%'>
-        <thead>
-          <tr>
-            <td>{translate('component')}</td>
-            <td>{translate('amount')}</td>
-          </tr>
-        </thead>
-        <tbody>
-          {components}
-        </tbody>
-      </table> : null }
-      { engineersList ? <table width='100%'>
-        <thead>
-          <tr>
-            <td>{translate('engineers')}</td>
-          </tr>
-        </thead>
-        <tbody>
-          {engineersList}
-        </tbody>
-      </table>  : null }
     </div>
   );
 }

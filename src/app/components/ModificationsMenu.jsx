@@ -63,12 +63,12 @@ export default class ModificationsMenu extends TranslatedComponent {
         grade = Number(grade);
         const active = m.getBlueprint() === blueprint && m.getBlueprintGrade() === grade;
         const key = blueprint + ':' + grade;
-        // const tooltipContent = blueprintTooltip(translate, info.features[grade]);
+        const tooltipContent = blueprintTooltip(language, m, blueprint, grade);
         blueprintGrades.unshift(
           <li key={key} data-id={key} className={cn('c', { active })}
             style={{ width: '2em' }}
-            // onMouseOver={termtip.bind(null, tooltipContent)}
-            // onMouseOut={tooltip.bind(null, null)}
+            onMouseOver={termtip.bind(null, tooltipContent)}
+            onMouseOut={tooltip.bind(null, null)}
             onClick={() => {
               m.setBlueprint(blueprint, grade, 1);
               this.setState({

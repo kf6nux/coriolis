@@ -89,20 +89,20 @@ export default class Slot extends TranslatedComponent {
       // Modifications tooltip shows blueprint and grade, if available
       let modTT = translate('modified');
       const blueprint = m.getBlueprint();
-      // const experimental = m.getExperimental();
-      // const grade = m.getGrade();
-      // if (blueprint) {
-      //   modTT = translate(blueprint) + ' ' + translate('grade') + ' ' + grade;
-      //   if (experimental) {
-      //     modTT += ', ' + translate(experimental);
-      //   }
-      //   modTT = (
-      //     <div>
-      //       <div>{modTT}</div>
-      //       {blueprintTooltip(translate, m.blueprint.grades[m.blueprint.grade], m)}
-      //     </div>
-      //   );
-      // }
+      const experimental = m.getExperimental();
+      const grade = m.getBlueprintGrade();
+      if (blueprint) {
+        modTT = `${translate(blueprint)} ${translate('grade')}: ${grade}`;
+        if (experimental) {
+          modTT += `, ${translate(experimental)}`;
+        }
+        modTT = (
+          <div>
+            <div>{modTT}</div>
+            {blueprintTooltip(language, m)}
+          </div>
+        );
+      }
 
       let mass = m.get('mass') || m.get('cargo') || m.get('fuel') || 0;
       return (
