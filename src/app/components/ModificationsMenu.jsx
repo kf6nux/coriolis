@@ -11,6 +11,7 @@ import {
 } from '../utils/BlueprintFunctions';
 import { getBlueprintInfo, getExperimentalInfo } from 'ed-forge/lib/data/blueprints';
 import { getModuleInfo } from 'ed-forge/lib/data/items';
+import { SHOW } from '../shipyard/StatsMapping';
 
 /**
  * Modifications menu
@@ -149,12 +150,10 @@ export default class ModificationsMenu extends TranslatedComponent {
 
     let onSet = m.set.bind(m);
     // Show resistance instead of effectiveness
-    if (property.endsWith('effectiveness')) {
-      const oldProperty = property;
-      property = property.replace('effectiveness', 'resistance');
-      onSet = (_, v) => {
-        m.set(oldProperty, 1 - v / 100);
-      };
+    const mapped = SHOW[property];
+    if (mapped) {
+      property = mapped.as;
+      onSet = mapped.setter.bind(undefined, m);
     }
 
     return <Modification key={property} m={m} property={property}
