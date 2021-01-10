@@ -146,6 +146,7 @@ export default class ModificationsMenu extends TranslatedComponent {
    * Create a modification component
    */
   _mkModification(property, highlight) {
+    const { translate } = this.context.language;
     const { m, propsToShow, onPropToggle } = this.props;
 
     let onSet = m.set.bind(m);
@@ -156,9 +157,16 @@ export default class ModificationsMenu extends TranslatedComponent {
       onSet = mapped.setter.bind(undefined, m);
     }
 
-    return <Modification key={property} m={m} property={property}
-      onSet={onSet} highlight={highlight} showProp={propsToShow[property]}
-      onPropToggle={onPropToggle} />;
+    return [
+      <tr key={`th-${property}`}>
+        <th colSpan="4">
+          <span className="cb">{translate(property)}</span>
+        </th>
+      </tr>,
+      <Modification key={property} m={m} property={property}
+        onSet={onSet} highlight={highlight} showProp={propsToShow[property]}
+        onPropToggle={onPropToggle} />
+    ];
   }
 
   /**
@@ -167,33 +175,18 @@ export default class ModificationsMenu extends TranslatedComponent {
    */
   _renderModifications() {
     const { m } = this.props;
-    const { translate } = this.context.language;
 
     const blueprintFeatures = getBlueprintInfo(m.getBlueprint()).features[
       m.getBlueprintGrade()
     ];
     const blueprintModifications = chain(keys(blueprintFeatures))
-      .map((feature) => [
-        <tr>
-          <th colSpan="4">
-            <span className="cb">{translate(feature)}</span>
-          </th>
-        </tr>,
-        this._mkModification(feature, true),
-      ])
+      .map((feature) => this._mkModification(feature, true))
       .filter(([_, mod]) => Boolean(mod))
       .flatMap()
       .value();
     const moduleModifications = chain(keys(getModuleInfo(m.getItem()).props))
       .filter((prop) => !blueprintFeatures[prop])
-      .map((prop) => [
-        <tr>
-          <th colSpan="4">
-            <span className="cb">{translate(prop)}</span>
-          </th>
-        </tr>,
-        this._mkModification(prop, false),
-      ])
+      .map((prop) => this._mkModification(prop, false))
       .flatMap()
       .value();
 
